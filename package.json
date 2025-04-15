@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "Markdown document viewer with directory navigation",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "node dev-server.js",
     "deploy": "vercel deploy"
   },
   "dependencies": {
-    "vercel": "^33.5.1"
+    "vercel": "^33.5.1",
+    "express": "^4.18.2"
   }
 } 

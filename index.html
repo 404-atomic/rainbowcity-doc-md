@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Directory Navigator & Markdown Preview</title>
+    <title>彩虹城AI伴侣一体七翼开发文档</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body {
@@ -11,7 +11,20 @@
             margin: 0;
             padding: 20px;
             display: flex;
+            flex-direction: column;
             gap: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .content {
+            display: flex;
+            gap: 20px;
+            flex: 1;
         }
         #directory-tree {
             width: 300px;
@@ -70,8 +83,13 @@
     </style>
 </head>
 <body>
-    <div id="directory-tree"></div>
-    <div id="preview"></div>
+    <div class="header">
+        <h1>彩虹城AI伴侣一体七翼开发文档</h1>
+    </div>
+    <div class="content">
+        <div id="directory-tree"></div>
+        <div id="preview"></div>
+    </div>
 
     <script>
         async function loadDirectory(path = '') {
