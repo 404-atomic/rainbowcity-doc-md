@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directory Navigator & Markdown Preview</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        #directory-tree {
+            width: 300px;
+            border-right: 1px solid #ccc;
+            padding-right: 20px;
+        }
+        #preview {
+            flex: 1;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .folder {
+            cursor: pointer;
+            padding: 5px;
+            margin: 2px 0;
+        }
+        .folder:hover {
+            background: #f0f0f0;
+        }
+        .file {
+            padding: 5px;
+            margin: 2px 0;
+            cursor: pointer;
+            color: #0066cc;
+        }
+        .file:hover {
+            background: #f0f0f0;
+        }
+        .hidden {
+            display: none;
+        }
+        .folder-content {
+            margin-left: 20px;
+        }
+        .folder-icon::before {
+            content: "📁";
+            margin-right: 5px;
+        }
+        .file-icon::before {
+            content: "📄";
+            margin-right: 5px;
+        }
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8d7da;
+            border-radius: 4px;
+        }
+        .loading {
+            color: #666;
+            padding: 10px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="directory-tree"></div>
+    <div id="preview"></div>
+
+    <script>
+        async function loadDirectory(path = '') {
+            try {
+                const response = await fetch(`/api/directory?path=${encodeURIComponent(path)}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load directory');
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error loading directory:', error);
+                showError(error.message);
+                return [];
+            }
+        }
+
+        function showError(message) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function showLoading(message) {
+            const preview = document.getElementById('preview');
+            preview.innerHTML = `<div class="loading">${message}</div>`;
+        }
+
+        function createTreeElement(item, path) {
+            const div = document.createElement('div');
+            if (item.type === 'directory') {
+                div.className = 'folder';
+                div.innerHTML = `<span class="folder-icon">${item.name}</span>`;
+                div.onclick = async (e) => {
+                    e.stopPropagation();
+                    const content = div.querySelector('.folder-content');
+                    if (content) {
+                        content.classList.toggle('hidden');
+                    } else {
+                        showLoading('Loading directory...');
+                        const newContent = document.createElement('div');
+                        newContent.className = 'folder-content';
+                        const items = await loadDirectory(path + '/' + item.name);
+                        items.forEach(subItem => {
+                            newContent.appendChild(createTreeElement(subItem, path + '/' + item.name));
+                        });
+                        div.appendChild(newContent);
+                        document.getElementById('preview').innerHTML = '';
+                    }
+                };
+            } else if (item.name.endsWith('.md')) {
+                div.className = 'file';
+                div.innerHTML = `<span class="file-icon">${item.name}</span>`;
+                div.onclick = async () => {
+                    try {
+                        showLoading('Loading file...');
+                        const response = await fetch(`/api/file?path=${encodeURIComponent(path + '/' + item.name)}`);
+                        if (!response.ok) {
+                            const error = await response.json();
+                            throw new Error(error.error || 'Failed to load file');
+                        }
+                        const content = await response.text();
+                        document.getElementById('preview').innerHTML = marked.parse(content);
+                    } catch (error) {
+                        console.error('Error loading file:', error);
+                        showError(error.message);
+                    }
+                };
+            }
+            return div;
+        }
+
+        async function initializeDirectoryTree() {
+            const rootDir = document.getElementById('directory-tree');
+            showLoading('Loading directory structure...');
+            const items = await loadDirectory();
+            rootDir.innerHTML = '';
+            items.forEach(item => {
+                rootDir.appendChild(createTreeElement(item, ''));
+            });
+            document.getElementById('preview').innerHTML = '';
+        }
+
+        // Initialize the directory tree when the page loads
+        window.onload = initializeDirectoryTree;
+    </script>
+</body>
+</html> 
