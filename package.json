@@ -1,0 +1,12 @@
+{
+  "name": "rainbowcity-doc-md",
+  "version": "1.0.0",
+  "description": "Markdown document viewer with directory navigation",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel deploy"
+  },
+  "dependencies": {
+    "vercel": "^33.5.1"
+  }
+} 
